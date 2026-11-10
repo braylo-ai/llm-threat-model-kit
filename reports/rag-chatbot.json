@@ -1,0 +1,635 @@
+{
+  "system": "Public RAG support chatbot",
+  "description": "Anonymous website visitors ask product questions. A retriever pulls chunks from a vector store built from public docs and an internal support knowledge base (which holds some customer case notes). A self-hosted fine-tuned model answers with citations. A nightly job indexes new docs and community forum posts.\n",
+  "summary": {
+    "threats": 10,
+    "inherent": {
+      "Critical": 3,
+      "High": 7,
+      "Medium": 0,
+      "Low": 0
+    },
+    "residual": {
+      "Critical": 2,
+      "High": 2,
+      "Medium": 6,
+      "Low": 0
+    },
+    "inherent_total_score": 132,
+    "residual_total_score": 103,
+    "controls_in_place": 4,
+    "controls_missing": 11,
+    "owasp_llm_covered": [
+      "LLM01",
+      "LLM02",
+      "LLM03",
+      "LLM04",
+      "LLM07",
+      "LLM08",
+      "LLM09",
+      "LLM10"
+    ]
+  },
+  "findings": [
+    {
+      "id": "T02",
+      "title": "Indirect prompt injection through untrusted content",
+      "evidence": "untrusted content flows into the model: forum->vectors",
+      "stride": [
+        "Tampering",
+        "Elevation of privilege"
+      ],
+      "owasp": [
+        "LLM01 Prompt Injection"
+      ],
+      "atlas": [
+        "AML.T0051.001 LLM Prompt Injection: Indirect"
+      ],
+      "likelihood": 5,
+      "impact": 4,
+      "score": 20,
+      "rating": "Critical",
+      "residual_likelihood": 4,
+      "residual_score": 16,
+      "residual_rating": "Critical",
+      "mitigations_in_place": [
+        "C01"
+      ],
+      "mitigations_missing": [
+        "C02",
+        "C04",
+        "C03"
+      ]
+    },
+    {
+      "id": "T08",
+      "title": "RAG / vector store poisoning",
+      "evidence": "untrusted content is indexed: forum->vectors",
+      "stride": [
+        "Tampering"
+      ],
+      "owasp": [
+        "LLM04 Data and Model Poisoning",
+        "LLM08 Vector and Embedding Weaknesses"
+      ],
+      "atlas": [
+        "AML.T0070 RAG Poisoning"
+      ],
+      "likelihood": 5,
+      "impact": 3,
+      "score": 15,
+      "rating": "Critical",
+      "residual_likelihood": 5,
+      "residual_score": 15,
+      "residual_rating": "Critical",
+      "mitigations_in_place": [],
+      "mitigations_missing": [
+        "C10",
+        "C02",
+        "C09"
+      ]
+    },
+    {
+      "id": "T05",
+      "title": "Sensitive information disclosure in responses",
+      "evidence": "model reads confidential or restricted data",
+      "stride": [
+        "Information disclosure"
+      ],
+      "owasp": [
+        "LLM02 Sensitive Information Disclosure"
+      ],
+      "atlas": [
+        "AML.T0057 LLM Data Leakage"
+      ],
+      "likelihood": 4,
+      "impact": 3,
+      "score": 12,
+      "rating": "High",
+      "residual_likelihood": 4,
+      "residual_score": 12,
+      "residual_rating": "High",
+      "mitigations_in_place": [],
+      "mitigations_missing": [
+        "C07",
+        "C09",
+        "C17"
+      ]
+    },
+    {
+      "id": "T09",
+      "title": "Retrieval access-control bypass",
+      "evidence": "vector store holds confidential data: vectors",
+      "stride": [
+        "Information disclosure"
+      ],
+      "owasp": [
+        "LLM08 Vector and Embedding Weaknesses",
+        "LLM02 Sensitive Information Disclosure"
+      ],
+      "atlas": [
+        "AML.T0057 LLM Data Leakage"
+      ],
+      "likelihood": 4,
+      "impact": 3,
+      "score": 12,
+      "rating": "High",
+      "residual_likelihood": 4,
+      "residual_score": 12,
+      "residual_rating": "High",
+      "mitigations_in_place": [],
+      "mitigations_missing": [
+        "C09",
+        "C18"
+      ]
+    },
+    {
+      "id": "T01",
+      "title": "Direct prompt injection / jailbreak",
+      "evidence": "users send free text straight to the model",
+      "stride": [
+        "Tampering",
+        "Elevation of privilege"
+      ],
+      "owasp": [
+        "LLM01 Prompt Injection"
+      ],
+      "atlas": [
+        "AML.T0051.000 LLM Prompt Injection: Direct",
+        "AML.T0054 LLM Jailbreak"
+      ],
+      "likelihood": 5,
+      "impact": 3,
+      "score": 15,
+      "rating": "Critical",
+      "residual_likelihood": 3,
+      "residual_score": 9,
+      "residual_rating": "Medium",
+      "mitigations_in_place": [
+        "C01",
+        "C14"
+      ],
+      "mitigations_missing": [
+        "C08",
+        "C03"
+      ]
+    },
+    {
+      "id": "T12",
+      "title": "Unbounded consumption / denial of wallet",
+      "evidence": "public endpoint",
+      "stride": [
+        "Denial of service"
+      ],
+      "owasp": [
+        "LLM10 Unbounded Consumption"
+      ],
+      "atlas": [
+        "AML.T0029 Denial of ML Service",
+        "AML.T0034 Cost Harvesting"
+      ],
+      "likelihood": 4,
+      "impact": 3,
+      "score": 12,
+      "rating": "High",
+      "residual_likelihood": 3,
+      "residual_score": 9,
+      "residual_rating": "Medium",
+      "mitigations_in_place": [
+        "C12"
+      ],
+      "mitigations_missing": [
+        "C17",
+        "C13"
+      ]
+    },
+    {
+      "id": "T10",
+      "title": "Supply-chain compromise of model, plugin or dataset",
+      "evidence": "third-party components: base_model",
+      "stride": [
+        "Tampering"
+      ],
+      "owasp": [
+        "LLM03 Supply Chain"
+      ],
+      "atlas": [
+        "AML.T0010 ML Supply Chain Compromise"
+      ],
+      "likelihood": 3,
+      "impact": 4,
+      "score": 12,
+      "rating": "High",
+      "residual_likelihood": 2,
+      "residual_score": 8,
+      "residual_rating": "Medium",
+      "mitigations_in_place": [
+        "C14"
+      ],
+      "mitigations_missing": [
+        "C11"
+      ]
+    },
+    {
+      "id": "T11",
+      "title": "Training / fine-tune data poisoning",
+      "evidence": "fine-tuned or self-hosted models: base_model, registry",
+      "stride": [
+        "Tampering"
+      ],
+      "owasp": [
+        "LLM04 Data and Model Poisoning"
+      ],
+      "atlas": [
+        "AML.T0020 Poison Training Data"
+      ],
+      "likelihood": 3,
+      "impact": 4,
+      "score": 12,
+      "rating": "High",
+      "residual_likelihood": 2,
+      "residual_score": 8,
+      "residual_rating": "Medium",
+      "mitigations_in_place": [
+        "C14"
+      ],
+      "mitigations_missing": [
+        "C10",
+        "C11"
+      ]
+    },
+    {
+      "id": "T06",
+      "title": "System prompt leakage",
+      "evidence": "system prompt is reachable through user chat",
+      "stride": [
+        "Information disclosure"
+      ],
+      "owasp": [
+        "LLM07 System Prompt Leakage"
+      ],
+      "atlas": [
+        "AML.T0056 LLM Meta Prompt Extraction"
+      ],
+      "likelihood": 5,
+      "impact": 2,
+      "score": 10,
+      "rating": "High",
+      "residual_likelihood": 4,
+      "residual_score": 8,
+      "residual_rating": "Medium",
+      "mitigations_in_place": [
+        "C01"
+      ],
+      "mitigations_missing": [
+        "C08"
+      ]
+    },
+    {
+      "id": "T13",
+      "title": "Misinformation or hallucinated actions",
+      "evidence": "model output reaches people or systems",
+      "stride": [
+        "Tampering"
+      ],
+      "owasp": [
+        "LLM09 Misinformation"
+      ],
+      "atlas": [
+        "AML.T0048 External Harms"
+      ],
+      "likelihood": 4,
+      "impact": 3,
+      "score": 12,
+      "rating": "High",
+      "residual_likelihood": 2,
+      "residual_score": 6,
+      "residual_rating": "Medium",
+      "mitigations_in_place": [
+        "C15",
+        "C14"
+      ],
+      "mitigations_missing": []
+    }
+  ],
+  "checklist": [
+    {
+      "id": "C02",
+      "control": "Isolate untrusted content: delimit/spotlight it, never follow instructions found in data",
+      "status": "MISSING",
+      "addresses": [
+        "T02",
+        "T08"
+      ],
+      "priority_score": 20,
+      "nist_ai_rmf": [
+        "MEASURE 2.7",
+        "MANAGE 1.3"
+      ],
+      "iso27001": [
+        "A.8.27",
+        "A.8.28"
+      ],
+      "soc2": [
+        "CC6.6"
+      ]
+    },
+    {
+      "id": "C03",
+      "control": "Least-privilege tool scopes with per-user delegated credentials",
+      "status": "MISSING",
+      "addresses": [
+        "T02",
+        "T01"
+      ],
+      "priority_score": 20,
+      "nist_ai_rmf": [
+        "MANAGE 1.3",
+        "MEASURE 2.7"
+      ],
+      "iso27001": [
+        "A.5.15",
+        "A.5.18",
+        "A.8.2",
+        "A.8.3"
+      ],
+      "soc2": [
+        "CC6.1",
+        "CC6.3"
+      ]
+    },
+    {
+      "id": "C04",
+      "control": "Human approval for high-impact actions (send, pay, delete, external write)",
+      "status": "MISSING",
+      "addresses": [
+        "T02"
+      ],
+      "priority_score": 20,
+      "nist_ai_rmf": [
+        "MAP 3.5",
+        "GOVERN 3.2"
+      ],
+      "iso27001": [
+        "A.5.3",
+        "A.8.2"
+      ],
+      "soc2": [
+        "CC6.3",
+        "CC5.2"
+      ]
+    },
+    {
+      "id": "C08",
+      "control": "No secrets or access logic in system prompts; secrets in a vault",
+      "status": "MISSING",
+      "addresses": [
+        "T01",
+        "T06"
+      ],
+      "priority_score": 15,
+      "nist_ai_rmf": [
+        "MEASURE 2.7"
+      ],
+      "iso27001": [
+        "A.5.17"
+      ],
+      "soc2": [
+        "CC6.1"
+      ]
+    },
+    {
+      "id": "C09",
+      "control": "Document-level access control enforced at retrieval time",
+      "status": "MISSING",
+      "addresses": [
+        "T08",
+        "T05",
+        "T09"
+      ],
+      "priority_score": 15,
+      "nist_ai_rmf": [
+        "MEASURE 2.10",
+        "MANAGE 1.3"
+      ],
+      "iso27001": [
+        "A.5.15",
+        "A.8.3"
+      ],
+      "soc2": [
+        "CC6.1",
+        "C1.1"
+      ]
+    },
+    {
+      "id": "C10",
+      "control": "Vet and record provenance of ingested / training content",
+      "status": "MISSING",
+      "addresses": [
+        "T08",
+        "T11"
+      ],
+      "priority_score": 15,
+      "nist_ai_rmf": [
+        "MAP 4.2",
+        "MEASURE 2.7"
+      ],
+      "iso27001": [
+        "A.5.21",
+        "A.8.25"
+      ],
+      "soc2": [
+        "CC7.1"
+      ]
+    },
+    {
+      "id": "C07",
+      "control": "Data minimisation and PII redaction before data enters model context",
+      "status": "MISSING",
+      "addresses": [
+        "T05"
+      ],
+      "priority_score": 12,
+      "nist_ai_rmf": [
+        "MEASURE 2.10"
+      ],
+      "iso27001": [
+        "A.5.34",
+        "A.8.11",
+        "A.8.12"
+      ],
+      "soc2": [
+        "C1.1",
+        "CC6.7"
+      ]
+    },
+    {
+      "id": "C11",
+      "control": "Supplier and model provenance review: pinned versions, model cards, AI-BOM",
+      "status": "MISSING",
+      "addresses": [
+        "T10",
+        "T11"
+      ],
+      "priority_score": 12,
+      "nist_ai_rmf": [
+        "GOVERN 6.1",
+        "MAP 4.1",
+        "MANAGE 3.1",
+        "MANAGE 3.2"
+      ],
+      "iso27001": [
+        "A.5.19",
+        "A.5.21",
+        "A.5.23"
+      ],
+      "soc2": [
+        "CC9.2"
+      ]
+    },
+    {
+      "id": "C13",
+      "control": "Tamper-evident logs of prompts, retrievals, tool calls and approvals",
+      "status": "MISSING",
+      "addresses": [
+        "T12"
+      ],
+      "priority_score": 12,
+      "nist_ai_rmf": [
+        "MEASURE 2.4",
+        "MANAGE 4.1"
+      ],
+      "iso27001": [
+        "A.8.15",
+        "A.8.16"
+      ],
+      "soc2": [
+        "CC7.2",
+        "CC7.3"
+      ]
+    },
+    {
+      "id": "C17",
+      "control": "Strong authentication and tenant isolation on the chat/API surface",
+      "status": "MISSING",
+      "addresses": [
+        "T05",
+        "T12"
+      ],
+      "priority_score": 12,
+      "nist_ai_rmf": [
+        "MEASURE 2.7"
+      ],
+      "iso27001": [
+        "A.5.16",
+        "A.8.5"
+      ],
+      "soc2": [
+        "CC6.1",
+        "CC6.2"
+      ]
+    },
+    {
+      "id": "C18",
+      "control": "Harden the vector store: tenant partitions, encryption, no raw-embedding export",
+      "status": "MISSING",
+      "addresses": [
+        "T09"
+      ],
+      "priority_score": 12,
+      "nist_ai_rmf": [
+        "MEASURE 2.10"
+      ],
+      "iso27001": [
+        "A.8.3",
+        "A.8.24"
+      ],
+      "soc2": [
+        "CC6.1",
+        "C1.1"
+      ]
+    },
+    {
+      "id": "C01",
+      "control": "Prompt-injection and jailbreak detection on model inputs",
+      "status": "in place",
+      "addresses": [
+        "T02",
+        "T01",
+        "T06"
+      ],
+      "priority_score": 20,
+      "nist_ai_rmf": [
+        "MEASURE 2.7"
+      ],
+      "iso27001": [
+        "A.8.26",
+        "A.8.29"
+      ],
+      "soc2": [
+        "CC6.8",
+        "CC7.2"
+      ]
+    },
+    {
+      "id": "C14",
+      "control": "Adversarial / red-team evaluation before release and on every model change",
+      "status": "in place",
+      "addresses": [
+        "T01",
+        "T10",
+        "T11",
+        "T13"
+      ],
+      "priority_score": 15,
+      "nist_ai_rmf": [
+        "MEASURE 1.1",
+        "MEASURE 2.7"
+      ],
+      "iso27001": [
+        "A.8.29",
+        "A.8.32"
+      ],
+      "soc2": [
+        "CC7.1",
+        "CC8.1"
+      ]
+    },
+    {
+      "id": "C12",
+      "control": "Rate limits, token/cost budgets and step limits for agent loops",
+      "status": "in place",
+      "addresses": [
+        "T12"
+      ],
+      "priority_score": 12,
+      "nist_ai_rmf": [
+        "MEASURE 2.4",
+        "MANAGE 2.4"
+      ],
+      "iso27001": [
+        "A.8.6"
+      ],
+      "soc2": [
+        "A1.1"
+      ]
+    },
+    {
+      "id": "C15",
+      "control": "Grounding and citation checks; human review of consequential outputs",
+      "status": "in place",
+      "addresses": [
+        "T13"
+      ],
+      "priority_score": 12,
+      "nist_ai_rmf": [
+        "MEASURE 2.5",
+        "MANAGE 4.1"
+      ],
+      "iso27001": [],
+      "soc2": [
+        "PI1.3"
+      ]
+    }
+  ]
+}

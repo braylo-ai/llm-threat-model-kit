@@ -1,0 +1,52 @@
+# Worked example 1: an AI agency's client-ops stack.
+# Agents triage a shared inbox, update the CRM, draft and send follow-up
+# emails, and book meetings. Fictional system; no real client data.
+system:
+  name: AI agency client-ops agents
+  description: >
+    An orchestrator routes inbound client email to a triage agent. The agent
+    reads the email, looks up the client in the CRM, updates the deal record,
+    drafts a reply and sends it, and can create calendar invites. A hosted
+    third-party LLM API powers all agents. Staff use an internal chat UI to
+    give the agents ad-hoc instructions.
+
+components:
+  - { id: staff, type: user, name: Agency staff (internal chat UI), exposure: internal }
+  - { id: inbox, type: external_source, name: Shared client inbox (anyone can email it) }
+  - { id: orchestrator, type: orchestrator, name: Workflow orchestrator }
+  - { id: llm_api, type: llm, name: Hosted LLM API, third_party: true }
+  - { id: triage_agent, type: agent, name: Email triage agent }
+  - id: crm_read
+    type: tool
+    name: CRM read (contacts, deals, notes)
+    actions: [read]
+    sensitivity: confidential
+  - id: crm_write
+    type: tool
+    name: CRM update deal / notes
+    actions: [write]
+    sensitivity: confidential
+  - id: email_send
+    type: tool
+    name: Send email as agency mailbox
+    actions: [send]
+    sensitivity: confidential
+  - id: calendar
+    type: tool
+    name: Calendar create/delete events
+    actions: [write, delete]
+  - { id: crm_db, type: datastore, name: CRM database, sensitivity: confidential }
+
+flows:
+  - { from: inbox, to: orchestrator, data: raw inbound email, untrusted_content: true }
+  - { from: orchestrator, to: triage_agent, data: email body + attachments, untrusted_content: true }
+  - { from: staff, to: triage_agent, data: chat instructions }
+  - { from: triage_agent, to: llm_api, data: prompt incl. email + CRM context }
+  - { from: crm_read, to: triage_agent, data: client records }
+  - { from: crm_db, to: crm_read, data: records }
+  - { from: triage_agent, to: crm_write, data: deal updates }
+  - { from: triage_agent, to: email_send, data: outbound email }
+  - { from: triage_agent, to: calendar, data: invites }
+
+# Controls the agency already runs (ids from tmkit/catalog.py).
+controls_in_place: [C08, C13, C17]

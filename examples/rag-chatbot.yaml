@@ -1,0 +1,35 @@
+# Worked example 2: a public RAG support chatbot over product docs plus
+# an internal knowledge base. Fictional system.
+system:
+  name: Public RAG support chatbot
+  description: >
+    Anonymous website visitors ask product questions. A retriever pulls
+    chunks from a vector store built from public docs and an internal
+    support knowledge base (which holds some customer case notes). A
+    self-hosted fine-tuned model answers with citations. A nightly job
+    indexes new docs and community forum posts.
+
+components:
+  - { id: visitor, type: user, name: Website visitor, exposure: public }
+  - { id: chat_api, type: orchestrator, name: Chat API, exposure: public }
+  - { id: model, type: llm, name: Fine-tuned support model (self-hosted) }
+  - { id: registry, type: model_registry, name: Model registry + fine-tune data }
+  - { id: base_model, type: model_registry, name: Open-weights base model from hub, third_party: true }
+  - { id: retriever, type: retriever, name: Retriever }
+  - { id: vectors, type: vector_store, name: Vector store, sensitivity: confidential }
+  - { id: kb, type: datastore, name: Internal support KB (case notes), sensitivity: confidential }
+  - { id: docs, type: datastore, name: Public product docs, sensitivity: public }
+  - { id: forum, type: external_source, name: Community forum posts }
+
+flows:
+  - { from: visitor, to: chat_api, data: question }
+  - { from: visitor, to: model, data: question text }
+  - { from: chat_api, to: retriever, data: query }
+  - { from: vectors, to: retriever, data: top-k chunks }
+  - { from: retriever, to: model, data: context chunks }
+  - { from: kb, to: vectors, data: indexed case notes }
+  - { from: docs, to: vectors, data: indexed docs }
+  - { from: forum, to: vectors, data: indexed forum posts, untrusted_content: true }
+  - { from: base_model, to: registry, data: base weights }
+
+controls_in_place: [C01, C12, C14, C15]
